@@ -1,0 +1,32 @@
+{
+    # Global options block
+    email {env.EMAIL}
+
+    # On-Demand TLS configuration
+    on_demand_tls {
+        # Define an ask endpoint to control allowed domains
+        ask http://127.0.0.1:{env.NSITE_PORT}/allowed-domain
+        burst 5  # Allow up to 5 new certificates per minute
+        interval 2m  # Time window for the rate limit
+    }
+}
+
+:443 {
+    tls {
+        on_demand
+    }
+
+    # Caching configuration
+    route {
+        reverse_proxy 127.0.0.1:{env.NSITE_PORT}
+        cache {
+            stale 10m
+            ttl 60m
+        }
+    }
+}
+
+# Redirect HTTP to HTTPS
+:80 {
+    redir https://{host}{uri} permanent
+}
